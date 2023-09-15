@@ -291,7 +291,7 @@ public class LogProcessor
 
     private async Task SendErrors(IReadOnlyList<string> errors)
     {
-        for (int i = 0; i < errors.Count; i++)
+        for (int i = 0; i < Math.Min(5, errors.Count); i++)
         {
             string error = errors[i];
             if (error.Length > 2000)
