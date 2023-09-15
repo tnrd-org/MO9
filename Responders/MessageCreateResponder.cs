@@ -44,9 +44,8 @@ public class MessageCreateResponder : IResponder<IMessageCreate>
             return Result.FromSuccess();
         }
 
-        if (channelResult.Entity.OwnerID.Value != gatewayEvent.Author.ID)
+        if (gatewayEvent.Author.IsBot.HasValue && gatewayEvent.Author.IsBot.Value)
             return Result.FromSuccess();
-
 
         LogProcessor logProcessor = new(channelApi,
                 gatewayEvent.ChannelID,
