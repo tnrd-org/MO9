@@ -37,6 +37,7 @@ public class LogProcessor
     private readonly ILogger logger;
     private readonly HttpClient httpClient;
     private readonly Snowflake authorSnowflake;
+    private readonly MessageReference messageReference;
 
     public LogProcessor(
         IDiscordRestChannelAPI channelApi,
@@ -44,7 +45,8 @@ public class LogProcessor
         IEnumerable<IAttachment> attachments,
         ILogger logger,
         HttpClient httpClient,
-        Snowflake authorSnowflake
+        Snowflake authorSnowflake,
+        MessageReference messageReference
     )
     {
         this.channelApi = channelApi;
@@ -53,6 +55,7 @@ public class LogProcessor
         this.logger = logger;
         this.httpClient = httpClient;
         this.authorSnowflake = authorSnowflake;
+        this.messageReference = messageReference;
     }
 
     public async Task Process(CancellationToken ct)
@@ -110,6 +113,7 @@ public class LogProcessor
             {
                 result.Entity
             },
+            messageReference: messageReference,
             ct: ct);
 
         await SendErrors(errors);
@@ -121,7 +125,10 @@ public class LogProcessor
                              "Mods can introduce unexpected behaviour and interfere with the inner workings of the game resulting in bugs that aren't caused by the game itself.\n\n" +
                              "Please remove all your mods and try to reproduce the bug.\n" +
                              "The easiest way to remove your mods is by renaming the `BepInEx` folder in your game directory to anything else.";
-            await channelApi.CreateMessageAsync(channelId, message, ct: ct);
+            await channelApi.CreateMessageAsync(channelId,
+                message,
+                messageReference: messageReference,
+                ct: ct);
         }
     }
 
@@ -300,7 +307,9 @@ public class LogProcessor
             }
             else
             {
-                await channelApi.CreateMessageAsync(channelId, content: $"Exception {(i + 1)}\n```{error}```");
+                await channelApi.CreateMessageAsync(channelId,
+                    content: $"Exception {(i + 1)}\n```{error}```",
+                    messageReference: messageReference);
             }
         }
     }
@@ -336,7 +345,8 @@ public class LogProcessor
             string chunk = chunks[i];
 
             await channelApi.CreateMessageAsync(channelId,
-                content: $"Exception {errorNumber} ({i + 1}/{chunks.Count})\n```{chunk}```");
+                content: $"Exception {errorNumber} ({i + 1}/{chunks.Count})\n```{chunk}```",
+                messageReference: messageReference);
         }
     }
 }

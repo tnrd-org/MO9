@@ -3,6 +3,7 @@ using MO9.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -32,7 +33,7 @@ public class ThreadCreateResponder : IResponder<IThreadCreate>
         this.options = options.Value;
     }
 
-    public async Task<Result> RespondAsync(IThreadCreate gatewayEvent, CancellationToken ct = new CancellationToken())
+    public async Task<Result> RespondAsync(IThreadCreate gatewayEvent, CancellationToken ct = new())
     {
         if (!IsValidThread(gatewayEvent))
             return Result.FromSuccess();
@@ -68,8 +69,16 @@ public class ThreadCreateResponder : IResponder<IThreadCreate>
             goto END;
         }
 
-        LogProcessor logProcessor =
-            new(channelApi, threadId, message.Attachments, logger, httpClient, message.Author.ID);
+        MessageReference messageReference = new(threadId, threadId, gatewayEvent.GuildID);
+
+        LogProcessor logProcessor = new(channelApi,
+            threadId,
+            message.Attachments,
+            logger,
+            httpClient,
+            message.Author.ID,
+            messageReference);
+
         await logProcessor.Process(ct);
 
         END:

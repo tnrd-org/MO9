@@ -1,6 +1,7 @@
 ﻿using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
@@ -47,12 +48,15 @@ public class MessageCreateResponder : IResponder<IMessageCreate>
         if (gatewayEvent.Author.IsBot.HasValue && gatewayEvent.Author.IsBot.Value)
             return Result.FromSuccess();
 
+        MessageReference messageReference = new(gatewayEvent.ID, gatewayEvent.ChannelID, gatewayEvent.GuildID);
+
         LogProcessor logProcessor = new(channelApi,
-                gatewayEvent.ChannelID,
-                gatewayEvent.Attachments,
-                logger,
-                httpClient,
-                gatewayEvent.Author.ID);
+            gatewayEvent.ChannelID,
+            gatewayEvent.Attachments,
+            logger,
+            httpClient,
+            gatewayEvent.Author.ID,
+            messageReference);
         await logProcessor.Process(ct);
 
         return Result.FromSuccess();
